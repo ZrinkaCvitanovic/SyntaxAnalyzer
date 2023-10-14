@@ -1,9 +1,12 @@
 import sys
+
+
 class Pattern:
     def __init__(self, tag, child_nodes, conditions):
         self.tag = tag
         self.child_nodes = child_nodes
         self.conditions = conditions
+
 
 patterns = [
     Pattern('<program>', ['<lista_naredbi>'], ['IDN', 'KR_ZA', '⏊']),
@@ -32,23 +35,30 @@ tree = list()
 lines = list()
 space_counter = 0
 current_char = ""
+decrement = False
 
 def increment(value):
     global space_counter
     space_counter += value
 
+
 def parse_input(target_pattern):
     global tree
     global current_char
     global result
+
+
     tree.append(" " * space_counter + target_pattern.tag)
+    #print(" " * space_counter + target_pattern.tag)
     for child in target_pattern.child_nodes:
         if child[0] != "<":
             if child == "$":
-                tree.append(" "*int(space_counter+1) + child)
+                tree.append(" " * (space_counter + 1) + child)
+                #print(" " * (space_counter + 1) + child)
                 return
             else:
-                tree.append(" " * int(space_counter+1)+ result)
+                tree.append(" " * (space_counter + 1) + result)
+                #print(" " * (space_counter + 1) + result)
             try:
                 result = input()
             except EOFError:
@@ -80,11 +90,11 @@ def parse_input(target_pattern):
 
 
 
-
 try:
     result = input()
 except EOFError:
     result = ""
+    decrement = True
 
 if result != "":
     result_splitted = result.split()
@@ -97,5 +107,3 @@ parse_input(patterns[0])
 
 for line in tree:
     print(line)
-
-
