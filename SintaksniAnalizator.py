@@ -1,152 +1,115 @@
-space_counter = 0
-tree = open("../tree.txt", "w")
+import sys
 
+
+class Pattern:
+    def __init__(self, tag, child_nodes, conditions):
+        self.tag = tag
+        self.child_nodes = child_nodes
+        self.conditions = conditions
+
+
+patterns = [
+    Pattern('<program>', ['<lista_naredbi>'], ['IDN', 'KR_ZA', '⏊']),
+    Pattern('<lista_naredbi>', ['<naredba>', '<lista_naredbi>'], ['IDN', 'KR_ZA']),
+    Pattern('<lista_naredbi>', ['$'], ['KR_AZ', '⏊']),
+    Pattern('<naredba>', ['<naredba_pridruzivanja>'], ['IDN']),
+    Pattern('<naredba>', ['<za_petlja>'], ['KR_ZA']),
+    Pattern('<naredba_pridruzivanja>', ['IDN', 'OP_PRIDRUZI', '<E>'], ['IDN']),
+    Pattern('<za_petlja>', ['KR_ZA', 'IDN', 'KR_OD', '<E>', 'KR_DO', '<E>', '<lista_naredbi>', 'KR_AZ'], ['KR_ZA']),
+    Pattern('<E>', ['<T>', '<E_lista>'], ['IDN', 'BROJ', 'OP_PLUS', 'OP_MINUS', 'L_ZAGRADA']),
+    Pattern('<E_lista>', ['OP_PLUS', '<E>'], ['OP_PLUS']),
+    Pattern('<E_lista>', ['OP_MINUS', '<E>'], ['OP_MINUS']),
+    Pattern('<E_lista>', ['$'], ['IDN', 'KR_ZA', 'KR_DO', 'KR_AZ', 'D_ZAGRADA', '⏊']),
+    Pattern('<T>', ['<P>', '<T_lista>'], ['IDN', 'BROJ', 'OP_PLUS', 'OP_MINUS', 'L_ZAGRADA']),
+    Pattern('<T_lista>', ['OP_PUTA', '<T>'], ['OP_PUTA']),
+    Pattern('<T_lista>', ['OP_DIJELI', '<T>'], ['OP_DIJELI']),
+    Pattern('<T_lista>', ['$'], ['IDN', 'KR_ZA', 'KR_DO', 'KR_AZ', 'OP_PLUS', 'OP_MINUS', 'D_ZAGRADA', '⏊']),
+    Pattern('<P>', ['OP_PLUS', '<P>'], ['OP_PLUS']),
+    Pattern('<P>', ['OP_MINUS', '<P>'], ['OP_MINUS']),
+    Pattern('<P>', ['L_ZAGRADA', '<E>', 'D_ZAGRADA'], ['L_ZAGRADA']),
+    Pattern('<P>', ['IDN'], ['IDN']),
+    Pattern('<P>', ['BROJ'], ['BROJ'])
+]
+
+tree = list()
+lines = list()
+space_counter = 0
+current_char = ""
+decrement = False
 
 def increment(value):
     global space_counter
-    space_counter = space_counter + value
+    space_counter += value
+
+def isdecrement():
+    global decrement
+    return decrement
 
 
-def iskeyword(line):
-    return line.startswith("KR")
+def parse_input(target_pattern):
+    global tree
+    global current_char
+    global result
 
 
-def define_command(line):
-    found = False
-    if not line or len(line[0]) < 1:
-        tree.write(" " * space_counter + "$" + "\n")
-        return False
-
-    for current_command in line:
-        command = current_command.split()[0]
-        if command == "OP_PRIDRUZI":
-            found = assign_operator(line)
-            return found
-        elif command == "OP_PLUS":
-            found = plus_operator(line)
-        elif command == "OP_MINUS":
-            found = minus_operator(line)
-        elif command == "OP_PUTA":
-            found = multiply_operator(line)
-        elif command == "OP_DIJELI":
-            found = divide_operator(line)
-        elif command == "KR_ZA":
-            found = for_loop(line)
-
-    # if no operator is found
-    if not found and line:
-        err_msg = line[0].split()
-        # write the information about a previously read character (hence the 0)
-        print("err", err_msg[0], err_msg[1], err_msg[2])
-    return found
-
-
-def assign_operator(line):
-    if len(line) < 3:
-        err_msg = line[0].split()
-        print("err", err_msg[0], err_msg[1], err_msg[2])
-        return False
-    tree.write(" " * space_counter + "<naredba>" + "\n")
-    tree.write(" " * space_counter + " <naredba_pridruzivanja>" + "\n")
-    increment(2)
-    prefix = " " * space_counter
-    tree.write(prefix + line[0] + "\n")
-    tree.write(prefix + line[1] + "\n")
-    if line[2]:
-        tree.write(prefix + "<E>" + "\n")
-        tree.write(prefix + " <T>" + "\n")
-        tree.write(prefix + "  <P>" + "\n")
-        increment(2)
-        prefix =" " * space_counter
-        tree.write(prefix + " " + line[2] + "\n")
-        tree.write(prefix + "<T_lista>" + "\n")
-        if len(line) <= 3:
-            tree.write(prefix + " $" + "\n")
-            increment(-1)
-            prefix = " "*space_counter
-            tree.write(prefix + "<E_lista>" + "\n")
-            tree.write(prefix + " $" + "\n")
-        increment(-4)
-
-        return True
-
-
-def plus_operator(line):
-    increment(1)
-
-
-def minus_operator(line):
-    increment(1)
-
-
-def multiply_operator(line):
-    increment(1)
-
-
-def divide_operator(line):
-    increment(1)
-
-
-def for_loop(line):
-    increment(1)
-
-
-def main():
-    tree.write("<program>" + "\n")
-    line_counter = 1
-    line_num = 1
-    current_line = list()
-    finished = False
-    while True:
-        if finished:
-            break
-        while line_counter == line_num:
-            next_line = list()
+    tree.append(" " * space_counter + target_pattern.tag)
+    #print(" " * space_counter + target_pattern.tag)
+    for child in target_pattern.child_nodes:
+        if child[0] != "<":
+            if child == "$":
+                tree.append(" " * (space_counter + 1) + child)
+                #print(" " * (space_counter + 1) + child)
+                return
+            else:
+                tree.append(" " * (space_counter + 1) + result)
+                #print(" " * (space_counter + 1) + result)
             try:
-                line = input()
-                if not line or line.isspace():
-                    finished = True
-                    break
-                if len(line.split()) < 1:
-                    print("err")
-                    return
-                else:
-                    line_num = int(line.split()[1])
-                if line_num == line_counter:
-                    current_line.append(line)
-                else:  # finished reading the entire line
-                    line_counter += 1
-                    next_line.append(line)
-                    increment(1)
-                    tree.write(" " * space_counter + "<lista_naredbi>\n")
-                    increment(1)
-                    comm = define_command(current_line)
-                    if not comm:
-                        return
-                    current_line = next_line  # in order to remember the last line I read
+                result = input()
             except EOFError:
-                break
+                result = ""
 
-    #if current_line:
-    increment(1)
-    tree.write(" "*space_counter + "<lista_naredbi>\n")
-    increment(1)
-    one_more = define_command(current_line)
-    current_line = list()
-    while one_more:
-        increment(1)
-        tree.write(" " * space_counter + "<lista_naredbi>\n")
-        increment(1)
-        one_more = define_command(current_line)
-    tree.close()
+            if result != "":
+                result_splitted = result.split()
+                lines.append(result)
+                current_char = result_splitted[0]
+            else:
+                current_char = "⏊"
+        else:
+            valid = False
+            for p in patterns:
+                if p.tag == child:
+                    if (current_char in p.child_nodes) or (current_char in p.conditions):
+                        valid = True
+                        increment(1)
+                        parse_input(p)
+                        increment(-1)
+                        break
 
-    with open("../tree.txt", "r") as print_tree:
-        lines = print_tree.readlines()
-        for line in lines:
-            print(line, end="")
-        print("\n")
+            if not valid:
+                if result == '':
+                    print('err ' + 'kraj')
+                else:
+                    print('err ' + lines[-1])
+                sys.exit()
 
 
-if __name__ == "__main__":
-    main()
 
+try:
+    result = input()
+except EOFError:
+    result = ""
+    check = isdecrement()
+    if not check:
+        decrement = True
+
+if result != "":
+    result_splitted = result.split()
+    lines.append(result)
+    current_char = result_splitted[0]
+else:
+    current_char = "⏊"
+
+parse_input(patterns[0])
+
+for line in tree:
+    print(line)
