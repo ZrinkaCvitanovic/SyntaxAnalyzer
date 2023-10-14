@@ -40,20 +40,21 @@ def increment(value):
 def parse_input(target_pattern):
     global tree
     global current_char
-
+    global result
+    tree.append(" " * space_counter + target_pattern.tag)
     for child in target_pattern.child_nodes:
         if child[0] != "<":
             if child == "$":
-                tree.append(" "*space_counter + child + "\n")
-                return None
+                tree.append(" "*int(space_counter+1) + child)
+                return
             else:
-                tree.append(" " * space_counter + result + "\n")
+                tree.append(" " * int(space_counter+1)+ result)
             try:
                 result = input()
             except EOFError:
                 result = ""
 
-            if result:
+            if result != "":
                 result_splitted = result.split()
                 lines.append(result)
                 current_char = result_splitted[0]
@@ -62,12 +63,13 @@ def parse_input(target_pattern):
         else:
             valid = False
             for p in patterns:
-                if (current_char in p.child_nodes) or (current_char in p.conditions):
-                    valid = True
-                    increment(1)
-                    parse_input(p)
-                    increment(-1)
-                    break
+                if p.tag == child:
+                    if (current_char in p.child_nodes) or (current_char in p.conditions):
+                        valid = True
+                        increment(1)
+                        parse_input(p)
+                        increment(-1)
+                        break
 
             if not valid:
                 if result == '':
@@ -77,23 +79,23 @@ def parse_input(target_pattern):
                 sys.exit()
 
 
-def main():
-    global tree
-    global current_char
-    try:
-        result = input()
-    except EOFError:
-        result = ""
-    if result != "":
-        result_splitted = result.split()
-        lines.append(result)
-        current_char = result_splitted[0]
-    else:
-        current_char = "⏊"
-    parse_input(patterns[0])
 
-    for line in tree:
-        print(line)
 
-if __name__ == "__main__":
-    main()
+try:
+    result = input()
+except EOFError:
+    result = ""
+
+if result != "":
+    result_splitted = result.split()
+    lines.append(result)
+    current_char = result_splitted[0]
+else:
+    current_char = "⏊"
+
+parse_input(patterns[0])
+
+for line in tree:
+    print(line)
+
+
