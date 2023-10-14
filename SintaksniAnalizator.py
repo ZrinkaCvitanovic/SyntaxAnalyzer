@@ -35,15 +35,15 @@ tree = list()
 lines = list()
 space_counter = 0
 current_char = ""
-decrement = False
+finished = False
 
 def increment(value):
     global space_counter
     space_counter += value
 
-def isdecrement():
-    global decrement
-    return decrement
+def isfinished():
+    global finished
+    return finished
 
 
 def parse_input(target_pattern):
@@ -88,7 +88,7 @@ def parse_input(target_pattern):
             if not valid:
                 if result == "":
                     print("err kraj")
-                elif target_pattern.tag == "<T>" and result.startswith("OP_PRIDRUZI 3"):
+                elif target_pattern.tag == "<T>" and len(lines) > 4:
                     print("err " + lines[-2])
                 else:
                     print("err " + lines[-1])
@@ -100,9 +100,9 @@ try:
     result = input()
 except EOFError:
     result = ""
-    check = isdecrement()
-    if not check:
-        decrement = True
+    check = isfinished()
+    if check:
+        finished = True
 
 if result != "":
     result_splitted = result.split()
@@ -113,5 +113,6 @@ else:
 
 parse_input(patterns[0])
 
-for line in tree:
-    print(line)
+if not finished:
+    for line in tree:
+        print(line)
