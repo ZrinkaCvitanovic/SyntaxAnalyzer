@@ -86,10 +86,12 @@ def parse_input(target_pattern):
                         break
 
             if not valid:
-                if result == '':
-                    print('err ' + 'kraj')
+                if result == "":
+                    print("err kraj")
+                elif target_pattern.tag == "<T>" and result.startswith("OP_PRIDRUZI 3"):
+                    print("err " + lines[-2])
                 else:
-                    print('err ' + lines[-1])
+                    print("err " + lines[-1])
                 sys.exit()
 
 
