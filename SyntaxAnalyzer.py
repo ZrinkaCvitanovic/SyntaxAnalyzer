@@ -9,26 +9,26 @@ class Pattern:
 
 
 patterns = [
-    Pattern('<program>', ['<lista_naredbi>'], ['IDN', 'KR_ZA', '⏊']),
-    Pattern('<lista_naredbi>', ['<naredba>', '<lista_naredbi>'], ['IDN', 'KR_ZA']),
-    Pattern('<lista_naredbi>', ['$'], ['KR_AZ', '⏊']),
-    Pattern('<naredba>', ['<naredba_pridruzivanja>'], ['IDN']),
-    Pattern('<naredba>', ['<za_petlja>'], ['KR_ZA']),
-    Pattern('<naredba_pridruzivanja>', ['IDN', 'OP_PRIDRUZI', '<E>'], ['IDN']),
-    Pattern('<za_petlja>', ['KR_ZA', 'IDN', 'KR_OD', '<E>', 'KR_DO', '<E>', '<lista_naredbi>', 'KR_AZ'], ['KR_ZA']),
-    Pattern('<E>', ['<T>', '<E_lista>'], ['IDN', 'BROJ', 'OP_PLUS', 'OP_MINUS', 'L_ZAGRADA']),
-    Pattern('<E_lista>', ['OP_PLUS', '<E>'], ['OP_PLUS']),
-    Pattern('<E_lista>', ['OP_MINUS', '<E>'], ['OP_MINUS']),
-    Pattern('<E_lista>', ['$'], ['IDN', 'KR_ZA', 'KR_DO', 'KR_AZ', 'D_ZAGRADA', '⏊']),
-    Pattern('<T>', ['<P>', '<T_lista>'], ['IDN', 'BROJ', 'OP_PLUS', 'OP_MINUS', 'L_ZAGRADA']),
-    Pattern('<T_lista>', ['OP_PUTA', '<T>'], ['OP_PUTA']),
-    Pattern('<T_lista>', ['OP_DIJELI', '<T>'], ['OP_DIJELI']),
-    Pattern('<T_lista>', ['$'], ['IDN', 'KR_ZA', 'KR_DO', 'KR_AZ', 'OP_PLUS', 'OP_MINUS', 'D_ZAGRADA', '⏊']),
-    Pattern('<P>', ['OP_PLUS', '<P>'], ['OP_PLUS']),
-    Pattern('<P>', ['OP_MINUS', '<P>'], ['OP_MINUS']),
-    Pattern('<P>', ['L_ZAGRADA', '<E>', 'D_ZAGRADA'], ['L_ZAGRADA']),
+    Pattern('<program>', ['<command_list>'], ['IDN', 'KW_FOR', '⏊']),
+    Pattern('<command_list>', ['<command>', '<command_list>'], ['IDN', 'KW_FOR']),
+    Pattern('<command_list>', ['$'], ['KW_ROF', '⏊']),
+    Pattern('<command>', ['<assignment_op>'], ['IDN']),
+    Pattern('<command>', ['<for-loop>'], ['KW_FOR']),
+    Pattern('<assignment_op>', ['IDN', 'OP_ASSIGN', '<E>'], ['IDN']),
+    Pattern('<for-loop>', ['KW_FOR', 'IDN', 'KW_FROM', '<E>', 'KW_TO', '<E>', '<command_list>', 'KW_ROF'], ['KW_FOR']),
+    Pattern('<E>', ['<T>', '<E_list>'], ['IDN', 'NUM', 'OP_ADD', 'OP_SUB', 'LEFT_P']),
+    Pattern('<E_list>', ['OP_ADD', '<E>'], ['OP_ADD']),
+    Pattern('<E_list>', ['OP_SUB', '<E>'], ['OP_SUB']),
+    Pattern('<E_list>', ['$'], ['IDN', 'KW_FOR', 'KW_TO', 'KW_ROF', 'RIGHT_P', '⏊']),
+    Pattern('<T>', ['<P>', '<T_list>'], ['IDN', 'NUM', 'OP_ADD', 'OP_SUB', 'LEFT_P']),
+    Pattern('<T_list>', ['OP_MULTIPLY', '<T>'], ['OP_MULTIPLY']),
+    Pattern('<T_list>', ['OP_DIVIDE', '<T>'], ['OP_DIVIDE']),
+    Pattern('<T_list>', ['$'], ['IDN', 'KW_FOR', 'KW_TO', 'KW_ROF', 'OP_ADD', 'OP_SUB', 'RIGHT_P', '⏊']),
+    Pattern('<P>', ['OP_ADD', '<P>'], ['OP_ADD']),
+    Pattern('<P>', ['OP_SUB', '<P>'], ['OP_SUB']),
+    Pattern('<P>', ['LEFT_P', '<E>', 'RIGHT_P'], ['LEFT_P']),
     Pattern('<P>', ['IDN'], ['IDN']),
-    Pattern('<P>', ['BROJ'], ['BROJ'])
+    Pattern('<P>', ['NUM'], ['NUM'])
 ]
 
 tree = list()
@@ -37,13 +37,10 @@ space_counter = 0
 current_char = ""
 finished = False
 
+
 def increment(value):
     global space_counter
     space_counter += value
-
-def isfinished():
-    global finished
-    return finished
 
 
 def parse_input(target_pattern):
@@ -51,18 +48,14 @@ def parse_input(target_pattern):
     global current_char
     global result
 
-
     tree.append(" " * space_counter + target_pattern.tag)
-    #print(" " * space_counter + target_pattern.tag)
     for child in target_pattern.child_nodes:
         if child[0] != "<":
             if child == "$":
                 tree.append(" " * (space_counter + 1) + child)
-                #print(" " * (space_counter + 1) + child)
                 return
             else:
                 tree.append(" " * (space_counter + 1) + result)
-                #print(" " * (space_counter + 1) + result)
             try:
                 result = input()
             except EOFError:
@@ -87,7 +80,7 @@ def parse_input(target_pattern):
 
             if not valid:
                 if result == "":
-                    print("err kraj")
+                    print("err end")
                 elif target_pattern.tag == "<T>" and len(lines) > 4:
                     print("err " + lines[-2])
                 else:
@@ -95,14 +88,10 @@ def parse_input(target_pattern):
                 sys.exit()
 
 
-
 try:
     result = input()
 except EOFError:
     result = ""
-    check = isfinished()
-    if check:
-        finished = True
 
 if result != "":
     result_splitted = result.split()
